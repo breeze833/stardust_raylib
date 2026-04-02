@@ -3,6 +3,7 @@ bin/
 *.o
 *.out
 *.exe
+GEMINI.md
 
 # System files
 .DS_Store
