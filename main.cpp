@@ -10,12 +10,13 @@ struct {
     int screenWidth = 800;
     int screenHeight = 480;
     int FPS = 60;
-    float radius = 5.0f;
+    float radius = 3.0f;
     int numParticles = 50;
     float connectionThreshold = 100.0f;
     float gravityStrength = 10000.0f;
     float minVelocity = 50.0f;
     float damping = 0.998f;
+    unsigned char trailAlpha = 20;
 } config;
 
 typedef struct _Particle {
@@ -68,8 +69,9 @@ void draw_connection(const Particle& p1, const Particle& p2) {
 }
 
 int main(int argc, char **argv) {
-    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 4");
+    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 5");
     SetTargetFPS(config.FPS);
+    const Color clearColor = { 0, 0, 0, config.trailAlpha }; // high-transparency black makes old things dimming
 
     // Initial state
     SetRandomSeed(time(NULL));
@@ -94,7 +96,9 @@ int main(int argc, char **argv) {
 
         // Draw
         BeginDrawing();
-            ClearBackground(BLACK);
+            // clear with a high-transparency black for retaining the traces
+            DrawRectangle(0, 0, config.screenWidth, config.screenHeight, clearColor);
+
 	    for (Particle p : particles) {
                 DrawCircleV(p.position, config.radius, p.color);
 	    }
