@@ -3,18 +3,17 @@
 
 #include <optional>
 #include <vector>
+#include <memory>
 #include <raylib.h>
 #include "Attractor.h"
 
-using namespace std;
-
-typedef struct _Particle {
+struct Particle {
     Vector2 position;
     Vector2 velocity;
     Color color;
-} Particle;
+};
 
-typedef struct _StardustAppConf {
+struct StardustAppConf {
     int screenWidth;
     int screenHeight;
     int FPS;
@@ -26,7 +25,7 @@ typedef struct _StardustAppConf {
     float damping;
     unsigned char trailAlpha;
     double autoGravityInterval;
-} StardustAppConf;
+};
 
 class StardustApp {
 public:
@@ -34,15 +33,15 @@ public:
     ~StardustApp();
     bool init();
     void run();
-    void update();
-    void draw();
     void cleanup();
     StardustAppConf& getConfig() { return config; }
 
 protected:
-    Particle random_particle();
-    void update_particle(Particle &p, float dt, const optional<Vector2> gravityPosition);
-    void draw_connection(const Particle &p1, const Particle &p2);
+    void update();
+    void draw() const;
+    Particle random_particle() const;
+    void update_particle(Particle &p, float dt, const std::optional<Vector2> gravityPosition) const;
+    void draw_connection(const Particle &p1, const Particle &p2) const;
 
 private:
     StardustAppConf config = {
@@ -58,10 +57,10 @@ private:
       .trailAlpha = 20,
       .autoGravityInterval = 15.0,
     };
-    vector<Particle> particles;
+    std::vector<Particle> particles;
     const Color clearColor;
-    MouseAttractor *mouseGravity;
-    AutoAttractor *autoGravity;
+    std::unique_ptr<Attractor> mouseGravity;
+    std::unique_ptr<AutoAttractor> autoGravity;
     double lastAttract;
 };
 

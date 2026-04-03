@@ -2,14 +2,12 @@
 #include <raymath.h>
 #include <ctime>
 
-StardustApp::StardustApp() : clearColor({0,0,0,config.trailAlpha}) {
-    mouseGravity = new MouseAttractor();
-    autoGravity = new AutoAttractor(config.screenWidth/2, config.screenHeight/2);
+StardustApp::StardustApp() : clearColor({0,0,0,config.trailAlpha}), lastAttract(0) {
+    mouseGravity = std::make_unique<MouseAttractor>();
+    autoGravity = std::make_unique<AutoAttractor>(config.screenWidth, config.screenHeight);
 }
 
 StardustApp::~StardustApp() {
-    delete mouseGravity;
-    delete autoGravity;
 }
 
 bool StardustApp::init() {
@@ -18,6 +16,7 @@ bool StardustApp::init() {
 
     // Initial state
     SetRandomSeed(time(NULL));
+    particles.reserve(config.numParticles);
     for (int i=config.numParticles; --i>=0;) {
         particles.push_back(random_particle());
     }
@@ -28,14 +27,14 @@ void StardustApp::update() {
     float dt = GetFrameTime();
 
     // check: location of gravity source
-    Attractor *attractor = mouseGravity;
+    Attractor *attractor = mouseGravity.get();
     mouseGravity->update();
     double curTime = GetTime();
     if (!mouseGravity->getPosition().has_value()) { // no mouse click
         if (curTime > lastAttract+config.autoGravityInterval) { // no gravity for a long time
             lastAttract = curTime;
             autoGravity->update();
-            attractor = autoGravity;
+            attractor = autoGravity.get();
         }
     } else { // mouse clicked
         lastAttract = curTime;
@@ -47,12 +46,12 @@ void StardustApp::update() {
     }
 }
 
-void StardustApp::draw() {
+void StardustApp::draw() const {
     BeginDrawing();
         // clear with a high-transparency black for retaining the traces
         DrawRectangle(0, 0, config.screenWidth, config.screenHeight, clearColor);
 
-        for (Particle p : particles) {
+        for (const Particle& p : particles) {
             DrawCircleV(p.position, config.radius, p.color);
         }
         for (int i=0; i<particles.size()-1; i++) {
@@ -65,9 +64,7 @@ void StardustApp::draw() {
 }
 
 void StardustApp::run() {
-    MouseAttractor mouseGravity; // Gravity source by mouse click
-    AutoAttractor autoGravity(config.screenWidth, config.screenHeight); // Gravity source by moving along Lessajous curve
-    lastAttract = GetTime(); // track the last attract action
+    lastAttract = GetTime(); // init the last attract action
     
     while (!WindowShouldClose()) {
         update();
@@ -79,7 +76,7 @@ void StardustApp::cleanup() {
     CloseWindow();
 }
 
-Particle StardustApp::random_particle() {
+Particle StardustApp::random_particle() const {
     Particle p;
     p.position = {
         GetRandomValue(0, config.screenWidth) * 0.9f,
@@ -94,7 +91,7 @@ Particle StardustApp::random_particle() {
     return p;
 }
 
-void StardustApp::update_particle(Particle &p, float dt, const optional<Vector2> gravityPosition) {
+void StardustApp::update_particle(Particle &p, float dt, const std::optional<Vector2> gravityPosition) const {
     // Update: Velocity change by the gravity
     if (gravityPosition.has_value()) {
         Vector2 vdir = Vector2Normalize(Vector2Subtract(gravityPosition.value(), p.position)); // direction of acceleration
@@ -117,7 +114,7 @@ void StardustApp::update_particle(Particle &p, float dt, const optional<Vector2>
     }
 }
 
-void StardustApp::draw_connection(const Particle &p1, const Particle &p2) {
+void StardustApp::draw_connection(const Particle &p1, const Particle &p2) const {
     float d = Vector2Distance(p1.position, p2.position);
     if (d<=config.connectionThreshold) {
        float opacity = 1.0f - (d/config.connectionThreshold);
