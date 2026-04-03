@@ -16,3 +16,4 @@ This project will evolve for several versions. Here we will list the versions:
 - **Initial version**: Ensure the build tools and libraries are ready.
 - **Step 1 (v1)**: Make a single bouncing ball on the screen with frame-rate independent movement. See [doc/step1.md](doc/step1.md) for details.
 - **Step 2 (v2)**: Introduce a multi-particle system with randomized properties and modular code structure. See [doc/step2.md](doc/step2.md) for details.
+- **Step 3 (v3)**: Implement dynamic inter-particle connections based on proximity to create a web-like visual effect. See [doc/step3.md](doc/step3.md) for details.

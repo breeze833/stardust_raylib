@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <raymath.h>
 #include <ctime>
 #include <vector>
 
@@ -10,6 +11,7 @@ struct {
     int FPS = 60;
     float radius = 5.0f;
     int numParticles = 50;
+    float connectionThreshold = 100.0f;
 } config;
 
 typedef struct _Particle {
@@ -43,6 +45,15 @@ void update_particle(Particle& p, float dt) {
     if (p.position.y + config.radius >= config.screenHeight || p.position.y - config.radius <= 0) p.velocity.y *= -1.0f;
 }
 
+void draw_connection(const Particle& p1, const Particle& p2) {
+    float d = Vector2Distance(p1.position, p2.position);
+    if (d<=config.connectionThreshold) {
+       float opacity = 1.0f - (d/config.connectionThreshold);
+       Color connColor = Fade(YELLOW, opacity);
+       DrawLineV(p1.position, p2.position, connColor);
+    }
+}
+
 int main(int argc, char **argv) {
     InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 2");
     SetTargetFPS(config.FPS);
@@ -67,6 +78,11 @@ int main(int argc, char **argv) {
             ClearBackground(BLACK);
 	    for (Particle p : particles) {
                 DrawCircleV(p.position, config.radius, p.color);
+	    }
+	    for (int i=0; i<particles.size()-1; i++) {
+                for (int j=i+1; j<particles.size(); j++) {
+                    draw_connection(particles[i], particles[j]);
+		}
 	    }
             DrawFPS(10, 10);
         EndDrawing();
