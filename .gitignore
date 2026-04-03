@@ -4,6 +4,7 @@ bin/
 *.out
 *.exe
 GEMINI.md
+stardust
 
 # System files
 .DS_Store

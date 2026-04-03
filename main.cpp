@@ -2,6 +2,7 @@
 #include <raymath.h>
 #include <ctime>
 #include <vector>
+#include <optional>
 
 using namespace std;
 
@@ -12,6 +13,9 @@ struct {
     float radius = 5.0f;
     int numParticles = 50;
     float connectionThreshold = 100.0f;
+    float gravityStrength = 10000.0f;
+    float minVelocity = 50.0f;
+    float damping = 0.998f;
 } config;
 
 typedef struct _Particle {
@@ -35,10 +39,19 @@ Particle random_particle() {
     return p;
 }
 
-void update_particle(Particle& p, float dt) {
+void update_particle(Particle& p, float dt, const optional<Vector2> gravityPosition) {
+    // Update: Velocity change by the gravity
+    if (gravityPosition.has_value()) {
+        Vector2 vdir = Vector2Normalize(Vector2Subtract(gravityPosition.value(), p.position)); // direction of acceleration
+	Vector2 accel = Vector2Scale(vdir, config.gravityStrength); // acceleration
+        p.velocity = Vector2Add(p.velocity, Vector2Scale(accel, dt)); // velocity change
+    }
+
     // Update: Move particle
-    p.position.x += p.velocity.x * dt;
-    p.position.y += p.velocity.y * dt;
+    if (Vector2Length(p.velocity)>config.minVelocity) { // slowdown a little bit
+        p.velocity = Vector2Scale(p.velocity, config.damping);
+    }
+    p.position = Vector2Add(p.position, Vector2Scale(p.velocity, dt));
     
     // Boundary check (bouncing)
     if (p.position.x + config.radius >= config.screenWidth || p.position.x - config.radius <= 0) p.velocity.x *= -1.0f;
@@ -55,7 +68,7 @@ void draw_connection(const Particle& p1, const Particle& p2) {
 }
 
 int main(int argc, char **argv) {
-    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 2");
+    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 4");
     SetTargetFPS(config.FPS);
 
     // Initial state
@@ -68,9 +81,15 @@ int main(int argc, char **argv) {
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
 
+	// check: location of gravity source
+	optional<Vector2> gravityPos = nullopt;
+	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            gravityPos = GetMousePosition();
+        }
+
 	// Update: particles move and bounce
 	for (Particle& p : particles) {
-            update_particle(p, dt);
+            update_particle(p, dt, gravityPos);
 	}
 
         // Draw
