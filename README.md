@@ -19,3 +19,4 @@ This project will evolve for several versions. Here we will list the versions:
 - **Step 3 (v3)**: Implement dynamic inter-particle connections based on proximity to create a web-like visual effect. See [doc/step3.md](doc/step3.md) for details.
 - **Step 4 (v4)**: Introduce user interaction with a mouse-triggered gravity impulse and implement acceleration-based physics with damping. See [doc/step4.md](doc/step4.md) for details.
 - **Step 5 (v5)**: Transform the simulation into fluid generative art using motion blur and alpha trails by replacing standard screen clearing with semi-transparent overdrawing. See [doc/step5.md](doc/step5.md) for details.
+- **Step 6 (v6)**: Support for non-interactive platform with automatic attraction. See [doc/step6.md](doc/step6.md) for details.

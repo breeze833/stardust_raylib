@@ -4,6 +4,8 @@
 #include <vector>
 #include <optional>
 
+#include "Attractor.h"
+
 using namespace std;
 
 struct {
@@ -69,9 +71,10 @@ void draw_connection(const Particle& p1, const Particle& p2) {
 }
 
 int main(int argc, char **argv) {
-    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 5");
+    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 6");
     SetTargetFPS(config.FPS);
     const Color clearColor = { 0, 0, 0, config.trailAlpha }; // high-transparency black makes old things dimming
+    MouseAttractor mouseGravity; // Gravity source by mouse click
 
     // Initial state
     SetRandomSeed(time(NULL));
@@ -84,14 +87,11 @@ int main(int argc, char **argv) {
         float dt = GetFrameTime();
 
 	// check: location of gravity source
-	optional<Vector2> gravityPos = nullopt;
-	if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            gravityPos = GetMousePosition();
-        }
+	mouseGravity.update();
 
 	// Update: particles move and bounce
 	for (Particle& p : particles) {
-            update_particle(p, dt, gravityPos);
+            update_particle(p, dt, mouseGravity.getPosition());
 	}
 
         // Draw
