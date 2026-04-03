@@ -8,7 +8,10 @@ An iterative exploration of generative art using C++ and raylib. This project ev
 - X11 development libraries (required on Linux for raylib, e.g., `-lX11`).
 
 ## How to Build
+### Linux with X11
 Run `make` in the root directory. The binary will be generated as `./stardust`.
+### Windows MinGW-w64
+Run `make -f Makefile.mingw` in the root directory. The binary will be generated as `stardust.exe`.
 
 ## Evolutions of the Program
 This project will evolve for several versions. Here we will list the versions:

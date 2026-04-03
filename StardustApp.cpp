@@ -11,7 +11,7 @@ StardustApp::~StardustApp() {
 }
 
 bool StardustApp::init() {
-    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust - Step 7");
+    InitWindow(config.screenWidth, config.screenHeight, "Digital Stardust");
     SetTargetFPS(config.FPS);
 
     // Initial state
