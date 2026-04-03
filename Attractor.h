@@ -3,6 +3,7 @@
 
 #include <raylib.h>
 #include <optional>
+#include <cmath>
 
 using namespace std;
 
@@ -26,6 +27,22 @@ public:
     }
 private:
     optional<Vector2> curPosition;
+};
+
+class AutoAttractor : public Attractor {
+public:
+    AutoAttractor(int screenWidth, int screenHeight)
+    : lastAppear(GetTime()), A(screenWidth/2), B(screenHeight/2), a(0.7), b(1.1), delta(M_PI/2) {}
+    virtual const optional<Vector2> getPosition() const override {
+        return lessajous();
+    }
+    virtual void update() override {
+        this->lastAppear = GetTime();
+    }
+    const Vector2 lessajous() const;
+private:
+    double lastAppear;
+    double A, B, a, b, delta; // parameters for Lissajous curve
 };
 
 #endif

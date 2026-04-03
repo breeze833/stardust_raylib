@@ -19,6 +19,7 @@ struct {
     float minVelocity = 50.0f;
     float damping = 0.998f;
     unsigned char trailAlpha = 20;
+    double autoGravityInterval = 15.0;
 } config;
 
 typedef struct _Particle {
@@ -75,6 +76,7 @@ int main(int argc, char **argv) {
     SetTargetFPS(config.FPS);
     const Color clearColor = { 0, 0, 0, config.trailAlpha }; // high-transparency black makes old things dimming
     MouseAttractor mouseGravity; // Gravity source by mouse click
+    AutoAttractor autoGravity(config.screenWidth, config.screenHeight); // Gravity source by moving along Lessajous curve
 
     // Initial state
     SetRandomSeed(time(NULL));
@@ -83,15 +85,28 @@ int main(int argc, char **argv) {
         particles.push_back(random_particle());
     }
 
+    double lastAttract = GetTime(); // track the last attract action
+
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
 
 	// check: location of gravity source
+	Attractor *attractor = &mouseGravity;
 	mouseGravity.update();
+        double curTime = GetTime();
+	if (!mouseGravity.getPosition().has_value()) { // no mouse click
+            if (curTime > lastAttract+config.autoGravityInterval) { // no gravity for a long time
+                lastAttract = curTime;
+		autoGravity.update();
+                attractor = &autoGravity;
+	    }
+        } else { // mouse clicked
+            lastAttract = curTime;
+        }
 
 	// Update: particles move and bounce
 	for (Particle& p : particles) {
-            update_particle(p, dt, mouseGravity.getPosition());
+            update_particle(p, dt, attractor->getPosition());
 	}
 
         // Draw

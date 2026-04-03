@@ -1,44 +1,46 @@
 # Step 6: The Ghost in the Machine (Polymorphism and Autonomy)
 
 ## Goal
-The final version transitions the project from an interactive tool to an **autonomous art installation**. By implementing **Polymorphism**, the program becomes environmentally aware: it can switch between manual user control (Mouse) and a self-governing "Ghost" mode (Algorithm). This ensures the simulation remains captivating without requiring a mouse.
+The goal of this final version is to transition the project from a purely interactive tool to an **autonomous art installation**. By implementing **Runtime Polymorphism**, the program becomes capable of self-governing: it switches between manual user control (Mouse) and a self-moving "Ghost" mode (Algorithm). This ensures the simulation remains visually captivating even without continuous user input.
 
 ## Design
 This stage focuses on high-level software architecture and autonomous behavior:
-1.  **Abstract Interface**: Define a base class `Attractor` that establishes a common interface for anything that can "pull" the particles. 2.  **Concrete Implementations**:
-    * **`MouseAttractor`**: Retrieves coordinates from the hardware mouse.
-    * **`AutoAttractor`**: Generates coordinates using a mathematical path (Lissajous curve).
-3.  **Environment Detection**: At startup, the program detects the presence of a mouse or checks for user input to decide which `Attractor` implementation to instantiate.
-4.  **Decoupled Physics**: The `update_particle` function is refactored to accept a pointer to the `Attractor` interface, making the physics logic completely agnostic to the source of the force.
+1.  **Abstract Interface**: A base class `Attractor` defines a common interface for anything that can generate a gravity point.
+2.  **Concrete Implementations**:
+    * **`MouseAttractor`**: Retrieves coordinates based on mouse click events (`IsMouseButtonPressed`).
+    * **`AutoAttractor`**: Generates coordinates based on a mathematical Lissajous curve.
+3.  **Autonomous Triggering**: A `autoGravityInterval` (15.0s) is added to the `config` struct. The program tracks the time since the last attraction event. If no mouse click is detected for the duration of the interval, the `AutoAttractor` is automatically activated to provide a gravity pulse.
+4.  **Decoupled Physics**: The `update_particle` function now accepts a `std::optional<Vector2>` provided by the current active `Attractor`, making the physics logic agnostic to the source of the force.
 
 ## Algorithms
-### The Autonomous "Ghost" Path
-To create an elegant, non-repetitive movement for the `AutoAttractor`, we use **Lissajous Curves**. This allows the "Ghost" to weave across the screen in complex loops:
-* **Horizontal Position**: $x(t) = A \cdot \sin(a \cdot t + \delta) + \text{Center}_x$
-* **Vertical Position**: $y(t) = B \cdot \sin(b \cdot t) + \text{Center}_y$
-* By using non-integer ratios for $a$ and $b$ (e.g., $a=0.7, b=1.1$), the path takes a long time to repeat, creating a "living" feel.
+### The Lissajous Curve
+To create smooth, non-repetitive movement for the `AutoAttractor`, the program uses **Lissajous Curves**. This allows the "Ghost" to weave across the screen in complex loops:
+* **Horizontal Position**: $x(t) = A \cdot \sin(a \cdot t + \delta) + A$
+* **Vertical Position**: $y(t) = B \cdot \sin(b \cdot t) + B$
+* Parameters in the code ($a=0.7, b=1.1, \delta=\pi/2$) ensure a path that takes a long time to repeat, creating a natural feel.
 
-### Runtime Polymorphism
-The simulation uses a pointer to the base class to achieve dynamic binding:
-1.  **Instantiation**: `Attractor* currentAttractor = new AutoAttractor();` (or `MouseAttractor`).
-2.  **Execution**: During the update loop, the code calls `currentAttractor->GetPosition()`.
-3.  **Resolution**: The C++ **vtable** ensures the correct version of the function is called at runtime based on the actual object type.
-
+### Runtime Polymorphism and Switching Logic
+The simulation manages the two attractor types and switches based on user activity:
+1.  **Interface Usage**: The main loop uses a pointer (`Attractor *attractor`) to refer to either the mouse or the auto attractor.
+2.  **State Logic**:
+    * If `mouseGravity.getPosition()` has a value (mouse clicked), the timer `lastAttract` is reset.
+    * If no value is present and the `curTime > lastAttract + autoGravityInterval`, the `autoGravity` attractor is selected and triggered.
+3.  **Virtual Dispatch**: The C++ **vtable** ensures the correct `getPosition()` and `update()` methods are called at runtime.
 
 ## Theories
 ### Object-Oriented Design: Polymorphism
-* **Interface vs. Implementation**: Polymorphism allows us to define *what* an object should do (get a position) separately from *how* it does it (read hardware vs. calculate math).
-* **Open-Closed Principle**: The system is "open for extension" (we could add a `KeyboardAttractor` or `SensorAttractor` later) but "closed for modification" (the particle update logic never has to change again).
+* **Interface vs. Implementation**: Polymorphism allows the definition of *what* an object should do separately from *how* it does it.
+* **Separation of Concerns**: The particle update logic only cares about *where* the gravity is, not *why* it is there.
+* **Software Adaptability**: The system is designed to handle different environments, such as an interactive desktop app or a passive wall projection, using the same codebase.
 
 ### The "Installation" Mindset
-* **Passive Interaction**: In a projection setting, the "user" is often a viewer. An autonomous system provides a continuous, evolving performance that doesn't "die" when no one is touching the computer.
-* **WVGA Projection Aesthetics**: The mathematical curves of the `AutoAttractor` result in smooth, sweeping trails that emphasize the "Afterglow" effect from Step 5, turning the wall into a canvas of light.
+* **Passive Engagement**: In a projection setting, the system must provide a continuous, evolving performance. The `AutoAttractor` ensures the "canvas" remains dynamic even when no viewers are interacting with it.
+* **Aesthetics of Autonomous Motion**: The mathematical curves combined with the "Afterglow" effect from Step 5 turn the screen into an evolving light painting, emphasizing the fluid, organic nature of the generative system.
 
 ## Learning Targets
-* **C++ Inheritance**: Defining base and derived classes.
-* **Virtual Functions**: Using the `virtual` keyword and the `override` specifier for runtime binding.
-* **Abstract Classes**: Understanding pure virtual functions (`= 0`) and why they cannot be instantiated.
-* **Dynamic Memory**: Using `new` and `delete` to manage object lifecycles on the heap.
-* **Mathematical Animation**: Applying trigonometry to create complex, autonomous movement patterns.
-* **Software Adaptability**: Writing code that behaves differently based on the deployment environment.
-
+* **C++ Inheritance**: Defining the `Attractor` base class and derived classes.
+* **Virtual Functions**: Using `virtual` and `override` for runtime method binding.
+* **Abstract Classes**: Implementing pure virtual functions (`= 0`) to define interfaces.
+* **Smart Interaction Logic**: Implementing time-based state switching to create autonomous behavior.
+* **Mathematical Pathfinding**: Applying trigonometry and Lissajous curves for procedural animation.
+* **Modular Code Organization**: Splitting classes into header (`.h`) and implementation (`.cpp`) files and updating the `Makefile` accordingly.
