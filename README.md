@@ -12,6 +12,8 @@ An iterative exploration of generative art using C++ and raylib. This project ev
 Run `make` in the root directory. The binary will be generated as `./stardust`.
 ### Windows MinGW-w64
 Run `make -f Makefile.mingw` in the root directory. The binary will be generated as `stardust.exe`.
+### Linux with DRM (CLI launch)
+The raylib can be built with DRM backend. It uses KMS and DRM to start the graphics. Make sure you can access the devices in `/dev/dri` and use `Makefile.drm` to build the program.
 
 ## Evolutions of the Program
 This project will evolve for several versions. Here we will list the versions:
